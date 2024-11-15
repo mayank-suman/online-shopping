@@ -10,6 +10,16 @@ const nextConfig = {
     };
     return config;
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "fakestoreapi.com",
+        port: "",
+        search: "",
+      },
+    ],
+  },
 };
 
 export default nextConfig;
