@@ -16,7 +16,8 @@ export const sortOptions = [
   { name: "Price: High to Low", href: "#", current: false },
 ];
 
-export const classNames = (...classes) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const classNames = (...classes: any[]) => {
   return classes.filter(Boolean).join(" ");
 };
 
