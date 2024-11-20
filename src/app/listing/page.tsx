@@ -1,39 +1,81 @@
-import Image from "next/image";
+"use client";
 
-export default async function page() {
-  const data = await fetch("https://fakestoreapi.com/products");
-  const products = await data.json();
-  //   console.log("🚀 ~ page ~ products:", products);
+import FilterDialog from "./components/mobile/FilterDialog";
+import { useEffect, useRef, useState } from "react";
+import { Filters, Products } from "./definitions";
+import { getFilters } from "./utilities";
+import Sidebar from "./components/Sidebar";
+import ProductGrid from "./components/ProductGrid";
+import SortDropdown from "./components/SortDropdown";
+
+export default function Page() {
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState<boolean>(false);
+  const originalProductsData = useRef<Products>([]);
+  const [products, setProducts] = useState<Products>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [filters, setFilters] = useState<Filters>([]);
+
+  const onFilterChange = (newFilters: Array<string>) => {
+    const filteredProducts = [...originalProductsData.current].filter(
+      (currProduct) => newFilters.includes(currProduct.category)
+    );
+
+    setProducts(
+      newFilters.length > 0 ? filteredProducts : originalProductsData.current
+    );
+  };
+
+  useEffect(() => {
+    (async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch("https://fakestoreapi.com/products");
+        if (!response.ok) {
+          throw new Error(`Response status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        originalProductsData.current = data;
+        setProducts(data);
+        setFilters(getFilters(data));
+      } catch (error) {
+        setProducts([]);
+        console.log("🚀 ~ useEffect ~ error:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, []);
 
   return (
     <div>
-      {/* <pre>{JSON.stringify(products, null, 2)}</pre> */}
       <div className="bg-white">
-        <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
-          <h2 className="sr-only">Products</h2>
+        <div>
+          {/* Mobile filter dialog */}
+          <FilterDialog
+            filters={filters}
+            mobileFiltersOpen={mobileFiltersOpen}
+            setMobileFiltersOpen={setMobileFiltersOpen}
+            selectedFilters={onFilterChange}
+          ></FilterDialog>
+          <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <SortDropdown setMobileFiltersOpen={setMobileFiltersOpen} />
+            <section aria-labelledby="products-heading" className="pb-24 pt-6">
+              <h2 id="products-heading" className="sr-only">
+                Products
+              </h2>
+              <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
+                {/* Filters */}
+                <Sidebar filters={filters} selectedFilters={onFilterChange} />
 
-          <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
-            {products.map((product) => (
-              <a key={product.id} href={product.href} className="group">
-                <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-lg xl:aspect-h-8 xl:aspect-w-7">
-                  <Image
-                    alt={product.description}
-                    src={product.image}
-                    className="size-full object-contain object-center group-hover:opacity-75"
-                    fill
-                    sizes="(max-widxth: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    loading="lazy"
-                    // width="100x"
-                    // height={100}
-                  />
-                </div>
-                <h3 className="mt-4 text-sm text-gray-700">{product.title}</h3>
-                <p className="mt-1 text-lg font-medium text-gray-900">
-                  {product.price}
-                </p>
-              </a>
-            ))}
-          </div>
+                {/* Product grid */}
+                <ProductGrid
+                  products={products}
+                  isProductDataLoading={isLoading}
+                />
+              </div>
+            </section>
+          </main>
         </div>
       </div>
     </div>
