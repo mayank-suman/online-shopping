@@ -45,7 +45,8 @@ export function getSelectedCheckboxes(e: React.ChangeEvent<HTMLInputElement>) {
     `input[type=checkbox][name=${filterType}]:checked`
   );
 
-  currentCheckedNodes.forEach(function (currentNode) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  currentCheckedNodes.forEach(function (currentNode: any) {
     currentCheckedCheckboxes.push(currentNode.value);
   });
   return currentCheckedCheckboxes;
